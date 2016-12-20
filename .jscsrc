@@ -78,8 +78,6 @@
         "finally"
     ],
 
-    "requireDotNotation": true,
-
     "requireKeywordsOnNewLine": ["return", "for", "try", "do", "switch", "case"],
 
     "requireLineBreakAfterVariableAssignment": true,
@@ -201,6 +199,8 @@
     "requireSpacesInsideObjectBrackets": "all",
 
     "validateIndentation": 4,
+
+    "validateLineBreaks": "LF",
 
     "validateParameterSeparator": ", ",
 
