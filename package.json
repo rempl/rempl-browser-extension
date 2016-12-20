@@ -1,0 +1,35 @@
+{
+  "name": "host-chromium-extension",
+  "version": "1.0.0-beta",
+  "description": "Rempl host for Chromium Developer Tools",
+  "author": "Roman Dvornov",
+  "license": "MIT",
+  "repository": "rempl/host-chromium-extension",
+  "homepage": "https://github.com/rempl/host-chromium-extension",
+  "bugs": {
+    "url": "https://github.com/rempl/host-chromium-extension/issues"
+  },
+  "keywords": ["rempl", "host"],
+  "dependencies": {
+    "rempl": "rempl/rempl"
+  },
+  "devDependencies": {
+    "eslint": "^3.11.1",
+    "jscs": "~3.0.7"
+  },
+  "scripts": {
+    "codestyle": "jscs src && eslint src"
+  },
+  "eslintConfig": {
+    "env": {
+      "node": true,
+      "mocha": true,
+      "es6": true
+    },
+    "rules": {
+      "no-duplicate-case": "error",
+      "no-undef": "error",
+      "no-unused-vars": ["error", {"vars": "all", "args": "after-used"}]
+    }
+  }
+}
