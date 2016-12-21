@@ -14,7 +14,7 @@
     "host"
   ],
   "dependencies": {
-    "rempl": "1.0.0-alpha4"
+    "rempl": "1.0.0-alpha5"
   },
   "devDependencies": {
     "eslint": "^3.11.1",
