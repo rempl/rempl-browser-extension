@@ -25,7 +25,7 @@ addFolder('src');
 addFile('node_modules/rempl/dist/rempl.js');
 
 // add manifest file with update version from package.json
-manifest['version'] = version.replace(/^(\d+\.\d+\.\d+).*/, '$1');
+manifest['version'] = version.replace(/[ -]beta/, '.');
 manifest['version_name'] = version;
 zip.file('manifest.json', JSON.stringify(manifest, null, 2));
 
