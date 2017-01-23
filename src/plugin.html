@@ -46,8 +46,27 @@
         margin-top: 4px;
         margin-left: 16px;
     }
+
+    #error
+    {
+        position: fixed;
+        z-index: 100;
+        padding: 20px;
+        color: #D00;
+        display: none;
+    }
+    #loading
+    {
+        position: fixed;
+        z-index: 100;
+        padding: 20px;
+        color: #888;
+        display: none;
+    }
 </style>
 
+<div id="loading">Fetching UI...</div>
+<div id="error"></div>
 <div id="state-banner">
     <div class="connection">
         Connection to page – <span id="connection-to-page" class="state pending">pending...</span>

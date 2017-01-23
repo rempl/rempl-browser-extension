@@ -2,6 +2,7 @@
 /* global chrome, slice, genUID, createIndicator, rempl */
 
 var DEBUG = false;
+var REMPL_SCRIPT = '../node_modules/rempl/dist/rempl.js';
 var inspectedWindow = chrome.devtools.inspectedWindow;
 var debugIndicator = DEBUG ? createIndicator() : null;
 var pageConnected = false;
@@ -18,16 +19,6 @@ var sandbox;
 var page = chrome.extension.connect({
     name: 'rempl:host'
 });
-var remplSource = (function() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '../node_modules/rempl/dist/rempl.js', false);
-    xhr.setRequestHeader('If-Modified-Since', new Date(0).toGMTString());
-    xhr.send('');
-
-    return xhr.status >= 200 && xhr.status < 400
-        ? xhr.responseText
-        : '';
-})();
 
 function $(id) {
     return document.getElementById(id);
@@ -62,15 +53,27 @@ function updateIndicator() {
 }
 
 function sandboxError(message) {
-    sandbox.srcdoc = '<div style="padding:20px;color:#D00;">' + message + '</div>';
+    $('error').style.display = 'block';
+    $('error').innerHTML = message;
 }
 
-function initSandbox(fn) {
-    clearTimeout(dropSandboxTimer);
-    dropSandbox();
+function showLoading() {
+    $('error').style.display = 'none';
+    $('loading').style.display = 'block';
+}
+
+function hideLoading() {
+    $('loading').style.display = 'none';
+}
+
+function initSandbox(src, fn) {
     sandbox = document.createElement('iframe');
     sandbox.onload = fn;
-    sandbox.srcdoc = '<div id="sandbox-splashscreen" style="padding:20px;color:#888;">Fetching UI...</div>';
+    if (src) {
+        sandbox.src = src;
+    } else {
+        sandbox.srcdoc = '<!doctype html>';
+    }
     document.documentElement.appendChild(sandbox);
 }
 
@@ -92,16 +95,16 @@ function createSubscribers() {
 function requestUI() {
     // send interface UI request
     // TODO: reduce reloads
-    initSandbox(function() {
-        sendToPage('getRemoteUI', function(err, type, content) {
-            if (err) {
-                return sandboxError('Fetch UI error: ' + err);
-            }
+    dropSandbox();
+    showLoading();
+    sendToPage('getRemoteUI', function(err, type, content) {
+        hideLoading();
 
-            if (type !== 'script') {
-                return sandboxError('Unsupported UI type: ' + type);
-            }
+        if (err) {
+            return sandboxError('Fetch UI error: ' + err);
+        }
 
+        initSandbox(type === 'url' ? content : false, function() {
             initUI(content);
         });
     });
@@ -121,13 +124,16 @@ function initUI(script) {
     });
 
     sandbox.contentWindow.eval(
-        remplSource +
-        ';document.getElementById("sandbox-splashscreen").style.display="none";' +
-        script
+        '(function(){var s=document.createElement("script");s.src="' + REMPL_SCRIPT + '";document.documentElement.appendChild(s)})();' +
+        script +
+        ';console.log("Remote publisher UI (script) successful eval\'ed");' +
+        '//# sourceURL=publisher-ui-init.js'
     );
 }
 
 function dropSandbox() {
+    clearTimeout(dropSandboxTimer);
+
     if (sandbox) {
         subscribers = createSubscribers();
         sandbox.parentNode.removeChild(sandbox);
