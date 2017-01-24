@@ -7,7 +7,6 @@ var debugIndicator = DEBUG ? createIndicator() : null;
 var pageConnected = false;
 var remplConnected = false;
 var devtoolSession = null;
-var devtoolFeatures = [];
 var selectedPublisher = null;
 var publishers = [];
 var callbacks = {};
@@ -98,8 +97,7 @@ function createSubscribers() {
     return {
         data: [],
         session: [],
-        connection: [],
-        features: []
+        connection: []
     };
 }
 
@@ -122,9 +120,9 @@ function requestUI() {
 }
 
 function initUI(type, content) {
-    // TODO: use session and features
+    // TODO: use session
     if (DEBUG) {
-        console.log(devtoolSession, devtoolFeatures);
+        console.log(devtoolSession);
     }
 
     rempl.initSandbox(sandbox.contentWindow, selectedPublisher, function(api) {
@@ -216,24 +214,19 @@ listeners = {
         pageConnected = true;
         updateIndicator();
     },
-    'page:connect': function(sessionId, features, publishers_) {
+    'page:connect': function(sessionId, publishers_) {
         notify('session', [devtoolSession = sessionId]);
-        notify('features', [devtoolFeatures = features]);
         notify('connection', [remplConnected = true]);
         publishers = publishers_;
         updateIndicator();
     },
     'disconnect': function() {
         pageConnected = false;
-        notify('features', [devtoolFeatures = []]);
         notify('connection', [remplConnected = false]);
         publishers = [];
         selectedPublisher = null;
         updateIndicator();
         dropSandboxTimer = setTimeout(dropSandbox, 3000);
-    },
-    'features': function(features) {
-        notify('features', [devtoolFeatures = features]);
     },
     'publishers': function(publishers_) {
         publishers = publishers_;

@@ -5,7 +5,6 @@ var DEBUG = false;
 var sessionId = genUID();
 var pluginConnected = false;
 var remplConnected = false;
-var features = [];
 var publishers = [];
 var debugIndicator = DEBUG ? createIndicator() : null;
 var outputChannelId;
@@ -66,7 +65,7 @@ plugin.onMessage.addListener(function(packet) {
     switch (packet.type) {
         case 'connect':
             if (!pluginConnected && remplConnected) {
-                sendToPlugin('page:connect', [sessionId, features, publishers]);
+                sendToPlugin('page:connect', [sessionId, publishers]);
                 sendToPage({
                     type: 'connect'
                 });
@@ -128,7 +127,7 @@ function onConnect(payload) {
     }
 
     if (pluginConnected) {
-        sendToPlugin('page:connect', [sessionId, payload.features || features, payload.publishers || publishers]);
+        sendToPlugin('page:connect', [sessionId, payload.publishers || publishers]);
         sendToPage({
             type: 'connect'
         });
@@ -141,15 +140,6 @@ function onData(payload) {
     }
 
     switch (payload.type) {
-        case 'features':
-            features = payload.data;
-
-            if (!pluginConnected) {
-                return;
-            }
-
-            break;
-
         case 'publishers':
             publishers = payload.data[0];
 
