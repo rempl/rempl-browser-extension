@@ -12,5 +12,5 @@ Install plugin through Chrome Web Store – [Rempl](https://chrome.google.com/we
 
 - change the version in `package.json`
 - run `npm run build`
-- file with name `rempl-[version].zip` should appear in folder
+- file with name `rempl-[version].zip` should be created
 - load file into Chrome Web Store
