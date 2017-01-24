@@ -2,7 +2,6 @@
 /* global chrome, slice, genUID, createIndicator, rempl */
 
 var DEBUG = false;
-var REMPL_SCRIPT = '../node_modules/rempl/dist/rempl.js';
 var inspectedWindow = chrome.devtools.inspectedWindow;
 var debugIndicator = DEBUG ? createIndicator() : null;
 var pageConnected = false;
@@ -19,6 +18,16 @@ var sandbox;
 var page = chrome.extension.connect({
     name: 'rempl:host'
 });
+var remplScript = (function() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '../node_modules/rempl/dist/rempl.js', false);
+    xhr.setRequestHeader('If-Modified-Since', new Date(0).toGMTString());
+    xhr.send('');
+
+    return xhr.status >= 200 && xhr.status < 400
+        ? xhr.responseText
+        : '';
+})();
 
 function $(id) {
     return document.getElementById(id);
@@ -66,14 +75,16 @@ function hideLoading() {
     $('loading').style.display = 'none';
 }
 
-function initSandbox(src, fn) {
+function initSandbox(type, content, fn) {
     sandbox = document.createElement('iframe');
     sandbox.onload = fn;
-    if (src) {
-        sandbox.src = src;
+
+    if (type === 'url') {
+        sandbox.src = content;
     } else {
         sandbox.srcdoc = '<!doctype html>';
     }
+
     document.documentElement.appendChild(sandbox);
 }
 
@@ -104,13 +115,13 @@ function requestUI() {
             return sandboxError('Fetch UI error: ' + err);
         }
 
-        initSandbox(type === 'url' ? content : false, function() {
-            initUI(content);
+        initSandbox(type, content, function() {
+            initUI(type, content);
         });
     });
 }
 
-function initUI(script) {
+function initUI(type, content) {
     // TODO: use session and features
     if (DEBUG) {
         console.log(devtoolSession, devtoolFeatures);
@@ -123,12 +134,13 @@ function initUI(script) {
         subscribers.data.push(api.send);
     });
 
-    sandbox.contentWindow.eval(
-        '(function(){var s=document.createElement("script");s.src="' + REMPL_SCRIPT + '";document.documentElement.appendChild(s)})();' +
-        script +
-        ';console.log("Remote publisher UI (script) successful eval\'ed");' +
-        '//# sourceURL=publisher-ui-init.js'
-    );
+    if (type === 'script') {
+        sandbox.contentWindow.eval(remplScript);
+        sandbox.contentWindow.eval(
+            content +
+            '\n//# sourceURL=publisher-ui.js'
+        );
+    }
 }
 
 function dropSandbox() {
