@@ -30,7 +30,11 @@ manifest['version_name'] = version;
 zip.file('manifest.json', JSON.stringify(manifest, null, 2));
 
 zip
-    .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
+    .generateNodeStream({
+    		type: 'nodebuffer',
+    		streamFiles: true,
+    		compression: 'DEFLATE'
+    })
     .pipe(fs.createWriteStream(outputFile))
     .on('finish', function() {
         console.log('Write result in ' + outputFile);
