@@ -130,10 +130,16 @@ function initUI(type, content) {
             sendToPage.apply(null, ['data'].concat(slice(arguments)));
         });
         subscribers.data.push(api.send);
+        api.send({
+            type: 'publisher:connect'
+        });
     });
 
     if (type === 'script') {
-        sandbox.contentWindow.eval(remplScript);
+        sandbox.contentWindow.eval(
+            remplScript +
+            '\n//# sourceURL=rempl.js'
+        );
         sandbox.contentWindow.eval(
             content +
             '\n//# sourceURL=publisher-ui.js'
