@@ -17,16 +17,6 @@ var sandbox;
 var page = chrome.extension.connect({
     name: 'rempl:host'
 });
-var remplScript = (function() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '../node_modules/rempl/dist/rempl.js', false);
-    xhr.setRequestHeader('If-Modified-Since', new Date(0).toGMTString());
-    xhr.send('');
-
-    return xhr.status >= 200 && xhr.status < 400
-        ? xhr.responseText
-        : '';
-})();
 
 function $(id) {
     return document.getElementById(id);
@@ -74,19 +64,6 @@ function hideLoading() {
     $('loading').style.display = 'none';
 }
 
-function initSandbox(type, content, fn) {
-    sandbox = document.createElement('iframe');
-    sandbox.onload = fn;
-
-    if (type === 'url') {
-        sandbox.src = content;
-    } else {
-        sandbox.srcdoc = '<!doctype html>';
-    }
-
-    document.documentElement.appendChild(sandbox);
-}
-
 function notify(type, args) {
     for (var i = 0; i < subscribers[type].length; i++) {
         subscribers[type][i].apply(null, args);
@@ -113,48 +90,31 @@ function requestUI() {
             return sandboxError('Fetch UI error: ' + err);
         }
 
-        initSandbox(type, content, function() {
-            initUI(type, content);
+        sandbox = rempl.createSandbox({
+            type: type,
+            content: content
+        }, function(api) {
+            // TODO: use session
+            if (DEBUG) {
+                console.log(devtoolSession);
+            }
+
+            api.subscribe(function() {
+                sendToPage.apply(null, ['data'].concat(slice(arguments)));
+            });
+            subscribers.data.push(api.send);
+            api.send({
+                type: 'publisher:connect'
+            });
         });
     });
-}
-
-function initUI(type, content) {
-    // TODO: use session
-    if (DEBUG) {
-        console.log(devtoolSession);
-    }
-
-    rempl.initSandbox(sandbox.contentWindow, selectedPublisher, function(api) {
-        api.subscribe(function() {
-            sendToPage.apply(null, ['data'].concat(slice(arguments)));
-        });
-        subscribers.data.push(api.send);
-        api.send({
-            type: 'publisher:connect'
-        });
-    });
-
-    if (type === 'script') {
-        sandbox.contentWindow.eval(
-            remplScript +
-            '\n//# sourceURL=rempl.js'
-        );
-        sandbox.contentWindow.eval(
-            content +
-            '\n//# sourceURL=publisher-ui.js'
-        );
-    }
 }
 
 function dropSandbox() {
     clearTimeout(dropSandboxTimer);
 
     if (sandbox) {
-        subscribers = createSubscribers();
-        sandbox.parentNode.removeChild(sandbox);
-        sandbox.setAttribute('srcdoc', '');
-        sandbox.setAttribute('src', '');
+        sandbox.destroy();
         sandbox = null;
     }
 }
