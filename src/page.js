@@ -8,7 +8,7 @@ var remplConnected = false;
 var publishers = [];
 var debugIndicator = DEBUG ? createIndicator() : null;
 var outputChannelId;
-var inputChannelId = 'rempl-browser-extension-subscriber:' + genUID();
+var inputChannelId = 'rempl-browser-extension-host:' + genUID();
 
 function updateIndicator() {
     if (debugIndicator) {
@@ -43,7 +43,7 @@ function sendToPage(data) {
 }
 
 function handshake() {
-    emitPageEvent('rempl-browser-extension-subscriber:connect', {
+    emitPageEvent('rempl-browser-extension-host:connect', {
         input: inputChannelId,
         output: outputChannelId
     });
