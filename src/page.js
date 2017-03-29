@@ -103,7 +103,7 @@ addEventListener('message', function(e) {
     var data = e.data || {};
 
     switch (data.channel) {
-        case 'rempl-publisher:connect':
+        case 'rempl-browser-extension-publisher:connect':
             onConnect(data.payload || {});
             break;
 
