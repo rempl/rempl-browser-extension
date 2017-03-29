@@ -6,6 +6,7 @@ var sessionId = genUID();
 var pluginConnected = false;
 var remplConnected = false;
 var publishers = [];
+var subscribers = [];
 var debugIndicator = DEBUG ? createIndicator() : null;
 var outputChannelId;
 var inputChannelId = 'rempl-browser-extension-host:' + genUID();
@@ -45,7 +46,8 @@ function sendToPage(data) {
 function handshake() {
     emitPageEvent('rempl-browser-extension-host:connect', {
         input: inputChannelId,
-        output: outputChannelId
+        output: outputChannelId,
+        endpoints: subscribers
     });
 }
 
@@ -87,11 +89,19 @@ plugin.onMessage.addListener(function(packet) {
             updateIndicator();
             break;
 
+        case 'endpoints':
+            subscribers = packet.data[0];
+            sendToPage(packet);
+            break;
+
         case 'getRemoteUI':
         case 'callback':
         case 'data':
             sendToPage(packet);
             break;
+
+        default:
+            console.warn('[rempl][content script] Unknown packet type: ' + packet.type);
     }
 });
 
@@ -114,20 +124,18 @@ addEventListener('message', function(e) {
 });
 
 function onConnect(payload) {
-    if (outputChannelId) {
-        return;
-    }
-
     outputChannelId = payload.input;
-    remplConnected = true;
-    updateIndicator();
 
     if (!payload.output) {
         handshake();
     }
 
+    remplConnected = true;
+    publishers = payload.endpoints;
+    updateIndicator();
+
     if (pluginConnected) {
-        sendToPlugin('page:connect', [sessionId, payload.publishers || publishers]);
+        sendToPlugin('page:connect', [sessionId, payload.endpoints || publishers]);
         sendToPage({
             type: 'connect'
         });
@@ -140,7 +148,7 @@ function onData(payload) {
     }
 
     switch (payload.type) {
-        case 'publishers':
+        case 'endpoints':
             publishers = payload.data[0];
 
             if (!pluginConnected) {

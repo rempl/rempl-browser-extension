@@ -83,6 +83,7 @@ function requestUI() {
     // TODO: reduce reloads
     dropSandbox();
     showLoading();
+    sendToPage('endpoints', [selectedPublisher]);
     sendToPage('getRemoteUI', function(err, type, content) {
         hideLoading();
 
@@ -170,6 +171,12 @@ page.onMessage.addListener(function(packet) {
         });
     }
 
+    // filter packets for selected publisher only
+    // TODO: remove it, when rempl would filter send requests on it own side
+    if (packet.endpoint && packet.endpoint !== selectedPublisher) {
+        return;
+    }
+
     if (listeners.hasOwnProperty(packet.type)) {
         listeners[packet.type].apply(null, args);
     }
@@ -194,7 +201,7 @@ listeners = {
         updateIndicator();
         dropSandboxTimer = setTimeout(dropSandbox, 3000);
     },
-    'publishers': function(publishers_) {
+    'endpoints': function(publishers_) {
         publishers = publishers_;
 
         if (selectedPublisher && publishers.indexOf(selectedPublisher) === -1) {
