@@ -1,6 +1,6 @@
 {
   "name": "host-chromium-extension",
-  "version": "1.0.0-beta8",
+  "version": "1.0.0-beta9",
   "description": "Rempl host for Chromium Developer Tools",
   "author": "Roman Dvornov",
   "license": "MIT",
