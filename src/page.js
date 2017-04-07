@@ -9,7 +9,9 @@ var publishers = [];
 var subscribers = [];
 var debugIndicator = DEBUG ? createIndicator() : null;
 var outputChannelId;
-var inputChannelId = 'rempl-browser-extension-host:' + genUID();
+var name = 'rempl-browser-extension-host';
+var connectTo = 'rempl-browser-extension-publisher';
+var inputChannelId = name + ':' + genUID();
 
 function updateIndicator() {
     if (debugIndicator) {
@@ -34,7 +36,8 @@ function emitPageEvent(channelId, payload) {
     }
 
     postMessage({
-        channel: channelId,
+        from: inputChannelId,
+        to: channelId,
         payload: payload
     }, '*');
 }
@@ -43,10 +46,10 @@ function sendToPage(data) {
     emitPageEvent(outputChannelId, data);
 }
 
-function handshake() {
-    emitPageEvent('rempl-browser-extension-host:connect', {
-        input: inputChannelId,
-        output: outputChannelId,
+function handshake(inited) {
+    emitPageEvent(connectTo + ':connect', {
+        initiator: name,
+        inited: inited,
         endpoints: subscribers
     });
 }
@@ -69,7 +72,8 @@ plugin.onMessage.addListener(function(packet) {
             if (!pluginConnected && remplConnected) {
                 sendToPlugin('page:connect', [sessionId, publishers]);
                 sendToPage({
-                    type: 'connect'
+                    type: 'connect',
+                    endpoints: subscribers
                 });
             }
 
@@ -111,23 +115,26 @@ plugin.onMessage.addListener(function(packet) {
 
 addEventListener('message', function(e) {
     var data = e.data || {};
+    var payload = data.payload || {};
 
-    switch (data.channel) {
-        case 'rempl-browser-extension-publisher:connect':
-            onConnect(data.payload || {});
+    switch (data.to) {
+        case name + ':connect':
+            if (payload.initiator === connectTo) {
+                onConnect(data.from, payload);
+            }
             break;
 
         case inputChannelId:
-            onData(data.payload || {});
+            onData(payload);
             break;
     }
 });
 
-function onConnect(payload) {
-    outputChannelId = payload.input;
+function onConnect(from, payload) {
+    outputChannelId = from;
 
-    if (!payload.output) {
-        handshake();
+    if (!payload.inited) {
+        handshake(true);
     }
 
     remplConnected = true;
@@ -137,7 +144,8 @@ function onConnect(payload) {
     if (pluginConnected) {
         sendToPlugin('page:connect', [sessionId, payload.endpoints || publishers]);
         sendToPage({
-            type: 'connect'
+            type: 'connect',
+            endpoints: subscribers
         });
     }
 }
@@ -161,4 +169,4 @@ function onData(payload) {
     plugin.postMessage(payload);
 }
 
-handshake();
+handshake(false);
