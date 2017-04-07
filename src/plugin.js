@@ -104,10 +104,8 @@ function requestUI() {
                 sendToPage.apply(null, ['data'].concat(slice(arguments)));
             });
             subscribers.data.push(api.send);
-            api.send({
-                type: 'publisher:connect'
-            });
         });
+        sandbox.setConnected(true);
     });
 }
 
