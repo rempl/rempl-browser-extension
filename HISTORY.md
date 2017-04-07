@@ -1,3 +1,7 @@
+## 1.0.0-beta10 (April 7, 2017)
+
+- Bumped `rempl` to `1.0.0-alpha14` and related changes
+
 ## 1.0.0-beta9 (March 30, 2017)
 
 - Bumped `rempl` to `1.0.0-alpha13` and related changes
