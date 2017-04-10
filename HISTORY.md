@@ -1,3 +1,7 @@
+## 1.0.0-beta11 (April 11, 2017)
+
+- Fixed to work on pages with `https://`
+
 ## 1.0.0-beta10 (April 7, 2017)
 
 - Bumped `rempl` to `1.0.0-alpha14` and related changes
