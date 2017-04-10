@@ -22,7 +22,7 @@
     "scripts": ["src/background.js"]
   },
   "content_scripts": [{
-    "matches": ["http://*/*"],
+    "matches": ["http://*/*", "https://*/*"],
     "js": ["src/helpers.js", "src/page.js"]
   }]
 }
