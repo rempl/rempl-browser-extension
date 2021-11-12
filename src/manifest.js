@@ -10,7 +10,7 @@ module.exports = function(browser = 'chrome') {
     if (browser === 'firefox') {
         manifest.applications = {
             gecko: {
-                id: 'jsondiscovery@exdis.me',
+                id: 'rempl@exdis.me',
                 strict_min_version: '57.0' // eslint-disable-line camelcase
             }
         };
