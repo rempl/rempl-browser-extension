@@ -1,13 +1,13 @@
 {
-  "name": "host-chromium-extension",
+  "name": "host-browser-extension",
   "version": "1.0.0",
-  "description": "Rempl host for Chromium Developer Tools",
+  "description": "Rempl host for broswer Developer Tools",
   "author": "Roman Dvornov",
   "license": "MIT",
-  "repository": "rempl/host-chromium-extension",
-  "homepage": "https://github.com/rempl/host-chromium-extension",
+  "repository": "rempl/host-browser-extension",
+  "homepage": "https://github.com/rempl/host-browser-extension",
   "bugs": {
-    "url": "https://github.com/rempl/host-chromium-extension/issues"
+    "url": "https://github.com/rempl/host-browser-extension/issues"
   },
   "keywords": [
     "rempl",
@@ -25,23 +25,5 @@
     "lint": "eslint --ext .js src scripts",
     "dev": "node ./scripts/build.js",
     "build": "NODE_ENV=production node ./scripts/build.js && node ./scripts/zip.js"
-  },
-  "eslintConfig": {
-    "env": {
-      "node": true,
-      "mocha": true,
-      "es6": true
-    },
-    "rules": {
-      "no-duplicate-case": "error",
-      "no-undef": "error",
-      "no-unused-vars": [
-        "error",
-        {
-          "vars": "all",
-          "args": "after-used"
-        }
-      ]
-    }
   }
 }
