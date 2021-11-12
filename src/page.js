@@ -1,24 +1,27 @@
-/* eslint-env browser */
-/* global chrome, genUID, createIndicator */
+import { createIndicator, genUID } from './helpers';
 
-var DEBUG = false;
-var sessionId = genUID();
-var pluginConnected = false;
-var remplConnected = false;
-var publishers = [];
-var subscribers = [];
-var debugIndicator = DEBUG ? createIndicator() : null;
-var outputChannelId;
-var name = 'rempl-browser-extension-host';
-var connectTo = 'rempl-browser-extension-publisher';
-var inputChannelId = name + ':' + genUID();
+const DEBUG = false;
+const sessionId = genUID();
+let pluginConnected = false;
+let remplConnected = false;
+let publishers = [];
+let subscribers = [];
+const debugIndicator = DEBUG ? createIndicator() : null;
+let outputChannelId;
+const name = 'rempl-browser-extension-host';
+const connectTo = 'rempl-browser-extension-publisher';
+const inputChannelId = name + ':' + genUID();
+
+const plugin = chrome.runtime.connect({
+    name: 'rempl:page'
+});
 
 function updateIndicator() {
     if (debugIndicator) {
         debugIndicator.style.background = [
-            'blue',   // once disconnected
+            'blue', // once disconnected
             'orange', // pluginConnected but no a page
-            'green'   // all connected
+            'green' // all connected
         ][pluginConnected + remplConnected];
     }
 }
@@ -32,7 +35,7 @@ function sendToPlugin(event, data) {
 
 function emitPageEvent(channelId, payload) {
     if (DEBUG) {
-        console.log('[rempl][content script] send to page', channelId, payload);
+        console.log('[rempl][content script] send to page', channelId, payload); // eslint-disable-line no-console
     }
 
     postMessage({
@@ -58,13 +61,9 @@ function handshake(inited) {
 // set up transport
 //
 
-var plugin = chrome.runtime.connect({
-    name: 'rempl:page'
-});
-
 plugin.onMessage.addListener(function(packet) {
     if (DEBUG) {
-        console.log('[rempl][content script] from plugin', packet.type, packet);
+        console.log('[rempl][content script] from plugin', packet.type, packet); // eslint-disable-line no-console
     }
 
     switch (packet.type) {
@@ -105,7 +104,7 @@ plugin.onMessage.addListener(function(packet) {
             break;
 
         default:
-            console.warn('[rempl][content script] Unknown packet type: ' + packet.type);
+            console.warn('[rempl][content script] Unknown packet type: ' + packet.type); // eslint-disable-line no-console
     }
 });
 
@@ -114,8 +113,8 @@ plugin.onMessage.addListener(function(packet) {
 //
 
 addEventListener('message', function(e) {
-    var data = e.data || {};
-    var payload = data.payload || {};
+    const data = e.data || {};
+    const payload = data.payload || {};
 
     switch (data.to) {
         case name + ':connect':
@@ -152,7 +151,7 @@ function onConnect(from, payload) {
 
 function onData(payload) {
     if (DEBUG) {
-        console.log('[rempl][content script] page -> plugin', payload);
+        console.log('[rempl][content script] page -> plugin', payload); // eslint-disable-line no-console
     }
 
     switch (payload.type) {

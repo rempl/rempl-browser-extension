@@ -1,22 +1,59 @@
-/* eslint-env browser */
-/* global chrome, slice, genUID, createIndicator, rempl */
+import rempl from 'rempl/dist/rempl';
+import { createIndicator, slice, genUID } from './helpers';
 
-var DEBUG = false;
-var inspectedWindow = chrome.devtools.inspectedWindow;
-var debugIndicator = DEBUG ? createIndicator() : null;
-var pageConnected = false;
-var remplConnected = false;
-var devtoolSession = null;
-var selectedPublisher = null;
-var publishers = [];
-var callbacks = {};
-var listeners;
-var subscribers = createSubscribers();
-var dropSandboxTimer;
-var sandbox;
-var page = chrome.extension.connect({
+const DEBUG = false;
+const inspectedWindow = chrome.devtools.inspectedWindow;
+const debugIndicator = DEBUG ? createIndicator() : null;
+let pageConnected = false;
+let remplConnected = false;
+let devtoolSession = null;
+let selectedPublisher = null;
+let publishers = [];
+const callbacks = {};
+const subscribers = createSubscribers();
+let dropSandboxTimer;
+let sandbox;
+const page = chrome.runtime.connect({
     name: 'rempl:host'
 });
+
+const listeners = {
+    connect: function() {
+        pageConnected = true;
+        updateIndicator();
+    },
+    'page:connect': function(sessionId, publishers_) {
+        notify('session', [devtoolSession = sessionId]);
+        notify('connection', [remplConnected = true]);
+        publishers = publishers_;
+        updateIndicator();
+    },
+    disconnect: function() {
+        pageConnected = false;
+        notify('connection', [remplConnected = false]);
+        publishers = [];
+        selectedPublisher = null;
+        updateIndicator();
+        dropSandboxTimer = setTimeout(dropSandbox, 3000);
+    },
+    endpoints: function(publishers_) {
+        publishers = publishers_;
+
+        if (selectedPublisher && publishers.indexOf(selectedPublisher) === -1) {
+            selectedPublisher = null;
+            dropSandbox();
+        }
+
+        updateIndicator();
+    },
+    data: function() {
+        if (DEBUG) {
+            console.log('[rempl][devtools plugin] recieve data', arguments); // eslint-disable-line no-console
+        }
+
+        notify('data', arguments);
+    }
+};
 
 function $(id) {
     return document.getElementById(id);
@@ -43,9 +80,9 @@ function updateIndicator() {
 
     if (DEBUG) {
         debugIndicator.style.background = [
-            'gray',   // once disconnected
+            'gray', // once disconnected
             'orange', // pageConnected but without a page
-            'green'   // all connected
+            'green' // all connected
         ][pageConnected + remplConnected];
     }
 }
@@ -65,7 +102,7 @@ function hideLoading() {
 }
 
 function notify(type, args) {
-    for (var i = 0; i < subscribers[type].length; i++) {
+    for (let i = 0; i < subscribers[type].length; i++) {
         subscribers[type][i].apply(null, args);
     }
 }
@@ -84,7 +121,7 @@ function requestUI() {
     dropSandbox();
     showLoading();
     sendToPage('endpoints', [selectedPublisher]);
-    sendToPage('getRemoteUI', function(err, type, content) {
+    sendToPage('getRemoteUI', function(err, type, content) { // eslint-disable-line consistent-return
         hideLoading();
 
         if (err) {
@@ -97,7 +134,7 @@ function requestUI() {
         }, function(api) {
             // TODO: use session
             if (DEBUG) {
-                console.log(devtoolSession);
+                console.log(devtoolSession); // eslint-disable-line no-console
             }
 
             api.subscribe(function() {
@@ -119,8 +156,8 @@ function dropSandbox() {
 }
 
 function sendToPage(type) {
-    var args = slice(arguments, 1);
-    var callback = false;
+    const args = slice(arguments, 1);
+    let callback = false;
 
     if (args.length && typeof args[args.length - 1] === 'function') {
         callback = genUID();
@@ -128,7 +165,7 @@ function sendToPage(type) {
     }
 
     if (DEBUG) {
-        console.log('[rempl][devtools plugin] send data', callback, args);
+        console.log('[rempl][devtools plugin] send data', callback, args); // eslint-disable-line no-console
     }
 
     page.postMessage({
@@ -141,24 +178,25 @@ function sendToPage(type) {
 
 page.onMessage.addListener(function(packet) {
     if (DEBUG) {
-        console.log('[rempl][devtools plugin] Recieve:', packet);
+        console.log('[rempl][devtools plugin] Recieve:', packet); // eslint-disable-line no-console
     }
 
-    var args = packet.data;
-    var callback = packet.callback;
+    let args = packet.data;
+    const callback = packet.callback;
 
     if (packet.type === 'callback') {
         if (callbacks.hasOwnProperty(callback)) {
             callbacks[callback].apply(null, args);
             delete callbacks[callback];
         }
+
         return;
     }
 
     if (callback) {
         args = args.concat(function() {
             if (DEBUG) {
-                console.log('[rempl][devtools plugin] send callback', callback, args);
+                console.log('[rempl][devtools plugin] send callback', callback, args); // eslint-disable-line no-console
             }
 
             page.postMessage({
@@ -179,44 +217,6 @@ page.onMessage.addListener(function(packet) {
         listeners[packet.type].apply(null, args);
     }
 });
-
-listeners = {
-    'connect': function() {
-        pageConnected = true;
-        updateIndicator();
-    },
-    'page:connect': function(sessionId, publishers_) {
-        notify('session', [devtoolSession = sessionId]);
-        notify('connection', [remplConnected = true]);
-        publishers = publishers_;
-        updateIndicator();
-    },
-    'disconnect': function() {
-        pageConnected = false;
-        notify('connection', [remplConnected = false]);
-        publishers = [];
-        selectedPublisher = null;
-        updateIndicator();
-        dropSandboxTimer = setTimeout(dropSandbox, 3000);
-    },
-    'endpoints': function(publishers_) {
-        publishers = publishers_;
-
-        if (selectedPublisher && publishers.indexOf(selectedPublisher) === -1) {
-            selectedPublisher = null;
-            dropSandbox();
-        }
-
-        updateIndicator();
-    },
-    'data': function() {
-        if (DEBUG) {
-            console.log('[rempl][devtools plugin] recieve data', arguments);
-        }
-
-        notify('data', arguments);
-    }
-};
 
 page.postMessage({
     type: 'plugin:init',

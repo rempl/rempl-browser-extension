@@ -1,7 +1,5 @@
-/* global chrome */
-
-var DEBUG = false;
-var connections = {};
+const DEBUG = false;
+const connections = {};
 
 function getConnection(id) {
     if (id in connections === false) {
@@ -17,13 +15,13 @@ function getConnection(id) {
 function sendToPage(connection, payload) {
     if (connection && connection.page) {
         if (DEBUG) {
-            console.log('-> page', payload);
+            console.log('-> page', payload); // eslint-disable-line no-console
         }
 
         connection.page.postMessage(payload);
     } else {
         if (DEBUG) {
-            console.warn('-> page [not sent - no connection]', payload);
+            console.warn('-> page [not sent - no connection]', payload); // eslint-disable-line no-console
         }
     }
 }
@@ -31,20 +29,20 @@ function sendToPage(connection, payload) {
 function sendToPlugin(connection, payload) {
     if (connection && connection.plugin) {
         if (DEBUG) {
-            console.log('-> plugin', payload);
+            console.log('-> plugin', payload); // eslint-disable-line no-console
         }
 
         connection.plugin.postMessage(payload);
     } else {
         if (DEBUG) {
-            console.warn('-> plugin [not sent - no connection]', payload);
+            console.warn('-> plugin [not sent - no connection]', payload); // eslint-disable-line no-console
         }
     }
 }
 
 function connectPage(page) {
-    var tabId = page.sender.tab && page.sender.tab.id;
-    var connection = getConnection(tabId);
+    const tabId = page.sender.tab && page.sender.tab.id;
+    const connection = getConnection(tabId);
 
     connection.page = page;
 
@@ -55,7 +53,7 @@ function connectPage(page) {
 
     page.onMessage.addListener(function(payload) {
         if (DEBUG) {
-            console.log('page -> plugin', payload);
+            console.log('page -> plugin', payload); // eslint-disable-line no-console
         }
 
         // proxy: page -> plugin
@@ -64,7 +62,7 @@ function connectPage(page) {
 
     page.onDisconnect.addListener(function() {
         if (DEBUG) {
-            console.log('page disconnect', tabId);
+            console.log('page disconnect', tabId); // eslint-disable-line no-console
         }
 
         connection.page = null;
@@ -73,14 +71,14 @@ function connectPage(page) {
 }
 
 function connectPlugin(plugin) {
-    var connection;
+    let connection;
 
     plugin.onMessage.addListener(function(payload) {
         if (DEBUG) {
-            console.log('plugin -> page', payload);
+            console.log('plugin -> page', payload); // eslint-disable-line no-console
         }
 
-        if (payload.type == 'plugin:init') {
+        if (payload.type === 'plugin:init') {
             connection = getConnection(payload.tabId);
             connection.plugin = plugin;
             // connection.tabId = plugin.sender.tab && plugin.sender.tab.id;
@@ -100,7 +98,7 @@ function connectPlugin(plugin) {
     plugin.onDisconnect.addListener(function() {
         if (connection) {
             if (DEBUG) {
-                console.log('plugin disconnect');
+                console.log('plugin disconnect'); // eslint-disable-line no-console
             }
 
             connection.plugin = null;
@@ -109,12 +107,12 @@ function connectPlugin(plugin) {
     });
 }
 
-chrome.extension.onConnect.addListener(function(port) {
-    if (port.name == 'rempl:page') {
+chrome.runtime.onConnect.addListener(function(port) {
+    if (port.name === 'rempl:page') {
         connectPage(port);
     }
 
-    if (port.name == 'rempl:host') {
+    if (port.name === 'rempl:host') {
         connectPlugin(port);
     }
 });
