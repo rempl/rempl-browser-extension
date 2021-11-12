@@ -11,7 +11,7 @@ const TARGETS = {
 };
 
 const outputFile = (target, buildDir) =>
-    path.resolve(__dirname, '..', buildDir, `jsondiscovery-${target}-${version}.zip`);
+    path.resolve(__dirname, '..', buildDir, `rempl-host-${target}-${version}.zip`);
 
 const makeAddFile = relDir => relPath => zip.file(relPath.replace(`${relDir}/`, ''), fs.readFileSync(relPath));
 
