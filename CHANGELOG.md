@@ -1,3 +1,8 @@
+## next
+
+- Added firefox support
+- Added dev-build mode
+
 ## 1.0.0-beta11 (April 11, 2017)
 
 - Fixed to work on pages with `https://`
