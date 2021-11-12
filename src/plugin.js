@@ -1,5 +1,5 @@
 import rempl from 'rempl/dist/rempl';
-import { createIndicator, slice, genUID } from './helpers';
+import { createIndicator, genUID } from './helpers';
 
 const DEBUG = false;
 const inspectedWindow = chrome.devtools.inspectedWindow;
@@ -115,7 +115,7 @@ function createSubscribers() {
     };
 }
 
-function requestUI() {
+function requestUI(...args) {
     // send interface UI request
     // TODO: reduce reloads
     dropSandbox();
@@ -138,7 +138,7 @@ function requestUI() {
             }
 
             api.subscribe(function() {
-                sendToPage.apply(null, ['data'].concat(slice(arguments)));
+                sendToPage.apply(null, ['data'].concat(args));
             });
             subscribers.data.push(api.send);
         });
@@ -155,8 +155,7 @@ function dropSandbox() {
     }
 }
 
-function sendToPage(type) {
-    const args = slice(arguments, 1);
+function sendToPage(type, ...args) {
     let callback = false;
 
     if (args.length && typeof args[args.length - 1] === 'function') {
@@ -194,7 +193,7 @@ page.onMessage.addListener(function(packet) {
     }
 
     if (callback) {
-        args = args.concat(function() {
+        args = args.concat(function(...args) {
             if (DEBUG) {
                 console.log('[rempl][devtools plugin] send callback', callback, args); // eslint-disable-line no-console
             }
@@ -202,7 +201,7 @@ page.onMessage.addListener(function(packet) {
             page.postMessage({
                 type: 'callback',
                 callback: callback,
-                data: slice(arguments)
+                data: args
             });
         });
     }

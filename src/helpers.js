@@ -5,10 +5,6 @@ export function createIndicator() {
     return debugIndicator;
 }
 
-export function slice(value, offset) {
-    return Array.prototype.slice.call(value, offset);
-}
-
 export function genUID(len) {
     function base36(val) {
         return Math.round(val).toString(36);
