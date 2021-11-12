@@ -115,7 +115,7 @@ function createSubscribers() {
     };
 }
 
-function requestUI(...args) {
+function requestUI() {
     // send interface UI request
     // TODO: reduce reloads
     dropSandbox();
@@ -137,7 +137,7 @@ function requestUI(...args) {
                 console.log(devtoolSession); // eslint-disable-line no-console
             }
 
-            api.subscribe(function() {
+            api.subscribe(function(...args) {
                 sendToPage.apply(null, ['data'].concat(args));
             });
             subscribers.data.push(api.send);
