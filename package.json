@@ -17,7 +17,6 @@
     "rempl": "1.0.0-alpha14"
   },
   "devDependencies": {
-    "babel-eslint": "^10.1.0",
     "esbuild": "^0.13.13",
     "eslint": "^7.0.0",
     "jszip": "^3.5.0"

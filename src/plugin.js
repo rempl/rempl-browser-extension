@@ -121,7 +121,7 @@ function requestUI() {
     dropSandbox();
     showLoading();
     sendToPage('endpoints', [selectedPublisher]);
-    sendToPage('getRemoteUI', function(err, type, content) { // eslint-disable-line consistent-return
+    sendToPage('getRemoteUI', function(err, type, content) {
         hideLoading();
 
         if (err) {

@@ -85,7 +85,7 @@ const buildAll = async function() {
             }
         });
     }
-})();
+}());
 
 function copyFiles(src, dest) {
     fs.mkdirSync(dest, { recursive: true });
