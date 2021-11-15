@@ -3,9 +3,13 @@
 [![Chrome Web Store](https://badgen.net/chrome-web-store/v/hcikjlholajopgbgfmmlbmifdfbkijdj)](https://chrome.google.com/webstore/detail/rempl/hcikjlholajopgbgfmmlbmifdfbkijdj)
 [![Mozilla Addons](https://badgen.net/amo/v/rempl)](https://addons.mozilla.org/en-US/firefox/addon/rempl/)
 
+This extension allows to load UI of tools built using [Rempl](https://github.com/rempl/rempl) in browser's devtools.
+
 Download it from:
 * [Chrome Web Store](https://chrome.google.com/webstore/detail/rempl/hcikjlholajopgbgfmmlbmifdfbkijdj)
 * [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/rempl/)
+
+> NOTE: Once Rempl extension is installed, its tab ("Rempl") should appear in browser's devtools. Make sure you reload a page using Rempl tools and re-opened (close and open again) browser's devtools as well.
 
 ## Development
 
