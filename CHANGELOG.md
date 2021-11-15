@@ -1,6 +1,6 @@
 ## 1.0.1 (November 12, 2021)
 
-- Fixed brokne data transfer between the extension and a Rempl publisher
+- Fixed broken data transfer between the extension and a Rempl publisher
 
 ## 1.0.0 (November 12, 2021)
 
