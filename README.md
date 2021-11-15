@@ -23,3 +23,9 @@ In Chromium based browser:
 - Enable `Developer mode` on `Extensions` (chrome://extensions) in Google Chrome
 - Click `Load Unpacked Extension` and choose folder of extension
 > NOTE: To apply most changes you need to reload extension on `Extensions` page, reload page and browser's devtools
+
+In Firefox:
+- Navigate to `about:debugging`
+- Click `This Firefox`
+- Click `Load Temporary Add-on` and choose manifest of extension
+> NOTE: To apply most changes you need to reload extension on `Extensions` page, reload page and browser's devtools
