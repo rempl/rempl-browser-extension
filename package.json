@@ -14,7 +14,7 @@
     "host"
   ],
   "dependencies": {
-    "rempl": "1.0.0-alpha14"
+    "rempl": "1.0.0-alpha.20"
   },
   "devDependencies": {
     "esbuild": "^0.14.38",
