@@ -1,4 +1,4 @@
-import rempl from 'rempl/dist/rempl';
+import { createSandbox } from 'rempl';
 import { createIndicator, genUID } from './helpers';
 
 const DEBUG = false;
@@ -128,7 +128,7 @@ function requestUI() {
             return sandboxError('Fetch UI error: ' + err);
         }
 
-        sandbox = rempl.createSandbox({
+        sandbox = createSandbox({
             type: type,
             content: content
         }, function(api) {

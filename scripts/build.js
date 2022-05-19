@@ -34,6 +34,20 @@ async function build(browser) {
             path.join(indir, 'page.js'),
             path.join(indir, 'plugin.js')
         ],
+        plugins: [
+            {
+                // FIXME: That's a temporary fix.
+                // Subscriber doesn't use for socket.io-client, however esbuild doesn't cut off it
+                // since it is CommonJS module. Migration from socket.io v2 to v4 should potentially
+                // fix the issue since v4 uses ESM
+                name: 'cut-off-socket.io',
+                setup({ onLoad }) {
+                    onLoad({ filter: /socket\.io-client/ }, () => ({
+                        contents: 'export default {}'
+                    }));
+                }
+            }
+        ],
         format: 'esm',
         bundle: true,
         minify: true,
