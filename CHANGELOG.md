@@ -1,3 +1,8 @@
+## next
+
+- Fixed to work in incognito mode
+- Bumped `rempl` to `1.0.0-alpha.21`
+
 ## 1.0.1 (November 12, 2021)
 
 - Fixed broken data transfer between the extension and a Rempl publisher
