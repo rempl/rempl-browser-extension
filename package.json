@@ -17,12 +17,17 @@
     "rempl": "1.0.0-alpha.21"
   },
   "devDependencies": {
+    "@types/chrome": "^0.0.188",
+    "@typescript-eslint/eslint-plugin": "^5.10.1",
+    "@typescript-eslint/parser": "^5.10.1",
     "esbuild": "^0.14.38",
     "eslint": "^8.14.0",
-    "jszip": "^3.9.1"
+    "jszip": "^3.9.1",
+    "typescript": "^4.6.4"
   },
   "scripts": {
-    "lint": "eslint --ext .js src scripts",
+    "lint": "eslint src scripts",
+    "tscheck": "tsc src/*.ts --noEmit",
     "dev": "node ./scripts/build.js",
     "build": "NODE_ENV=production node ./scripts/build.js && node ./scripts/zip.js"
   }

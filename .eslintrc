@@ -6,14 +6,28 @@
         "es6": true,
         "webextensions": true
     },
-    "globals": {
-        "discovery": true
-    },
     "parserOptions": {
         "ecmaVersion": 2020,
         "sourceType": "module"
     },
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
+    "extends": [
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
     "rules": {
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-this-alias": "off",
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-unused-vars": [
+            2,
+            {
+                "vars": "all",
+                "args": "after-used"
+            }
+        ],
         "no-duplicate-case": 2,
         "no-undef": 2,
         "no-unused-vars": [
@@ -42,10 +56,7 @@
         "no-mixed-spaces-and-tabs": 2,
         "no-multiple-empty-lines": 2,
         "no-multi-str": 2,
-        "dot-location": [
-            2,
-            "property"
-        ],
+        "dot-location": [2, "property"],
         "operator-linebreak": [
             2,
             "after",
@@ -78,43 +89,22 @@
                 "named": "never"
             }
         ],
-        "array-bracket-spacing": [
-            2,
-            "never"
-        ],
-        "space-in-parens": [
-            2,
-            "never"
-        ],
-        "comma-dangle": [
-            2,
-            "never"
-        ],
+        "array-bracket-spacing": [2, "never"],
+        "space-in-parens": [2, "never"],
+        "comma-dangle": [2, "never"],
         "no-trailing-spaces": 2,
-        "yoda": [
-            2,
-            "never"
-        ],
+        "yoda": [2, "never"],
         "camelcase": [
             2,
             {
                 "properties": "never"
             }
         ],
-        "comma-style": [
-            2,
-            "last"
-        ],
-        "curly": [
-            2,
-            "all"
-        ],
+        "comma-style": [2, "last"],
+        "curly": [2, "all"],
         "dot-notation": 2,
         "eol-last": 2,
-        "one-var": [
-            2,
-            "never"
-        ],
+        "one-var": [2, "never"],
         "wrap-iife": 2,
         "space-infix-ops": 2,
         "keyword-spacing": [
@@ -136,18 +126,9 @@
                 }
             }
         ],
-        "spaced-comment": [
-            2,
-            "always"
-        ],
-        "space-before-blocks": [
-            2,
-            "always"
-        ],
-        "semi": [
-            2,
-            "always"
-        ],
+        "spaced-comment": [2, "always"],
+        "space-before-blocks": [2, "always"],
+        "semi": [2, "always"],
         "indent": [
             2,
             4,
@@ -155,10 +136,7 @@
                 "SwitchCase": 1
             }
         ],
-        "linebreak-style": [
-            2,
-            "unix"
-        ],
+        "linebreak-style": [2, "unix"],
         "quotes": [
             2,
             "single",
@@ -168,4 +146,3 @@
         ]
     }
 }
-

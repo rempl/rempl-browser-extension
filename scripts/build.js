@@ -7,11 +7,19 @@ const { NODE_ENV } = process.env;
 const watch = NODE_ENV !== 'production';
 
 const indir = path.join(__dirname, '/../src');
+const browsers = ['chrome', 'firefox'];
 
-const browsers = [
-    'chrome',
-    'firefox'
-];
+function copyFiles(src, dest) {
+    fs.mkdirSync(dest, { recursive: true });
+
+    if (fs.statSync(src).isDirectory()) {
+        fs.readdirSync(src).forEach((p) =>
+            copyFiles(path.join(src, p), path.join(dest, path.basename(src)))
+        );
+    } else {
+        fs.copyFileSync(src, path.join(dest, path.basename(src)));
+    }
+}
 
 async function build(browser) {
     const outdir = path.join(__dirname, `/../build-${browser}`);
@@ -62,10 +70,10 @@ async function build(browser) {
         }
     });
 
-    result.outputFiles.forEach(file => fs.writeFileSync(file.path, file.contents));
+    result.outputFiles.forEach((file) => fs.writeFileSync(file.path, file.contents));
 }
 
-const buildAll = async function() {
+const buildAll = async function () {
     console.log('Building bundles:'); // eslint-disable-line no-console
 
     for (const browser of browsers) {
@@ -85,13 +93,13 @@ const buildAll = async function() {
     console.log('  OK'); // eslint-disable-line no-console
 };
 
-(async function() {
+async function main() {
     await buildAll();
 
     if (watch) {
         const lastChange = new Map();
 
-        fs.watch(indir, { recursive: true }, function(_, fn) {
+        fs.watch(indir, { recursive: true }, function (_, fn) {
             const mtime = Number(fs.statSync(path.join(indir, fn)).mtime);
 
             // avoid build when file doesn't changed but event is received
@@ -101,17 +109,6 @@ const buildAll = async function() {
             }
         });
     }
-}());
-
-function copyFiles(src, dest) {
-    fs.mkdirSync(dest, { recursive: true });
-
-    if (fs.statSync(src).isDirectory()) {
-        fs.readdirSync(src).forEach(p =>
-            copyFiles(path.join(src, p), path.join(dest, path.basename(src)))
-        );
-    } else {
-        fs.copyFileSync(src, path.join(dest, path.basename(src)));
-    }
 }
 
+main();

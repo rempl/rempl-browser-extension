@@ -9,7 +9,7 @@ let remplConnected = false;
 let devtoolSession = null;
 let selectedPublisher = null;
 let publishers = [];
-const callbacks = {};
+const callbacks = new Map();
 const subscribers = createSubscribers();
 let dropSandboxTimer;
 let sandbox;
@@ -18,40 +18,42 @@ const page = chrome.runtime.connect({
 });
 
 const listeners = {
-    connect: function() {
+    connect() {
         pageConnected = true;
         updateIndicator();
     },
-    'page:connect': function(sessionId, publishers_) {
-        notify('session', [devtoolSession = sessionId]);
-        notify('connection', [remplConnected = true]);
+    'page:connect'(sessionId, publishers_) {
+        notify('session', [(devtoolSession = sessionId)]);
+        notify('connection', [(remplConnected = true)]);
         publishers = publishers_;
         updateIndicator();
     },
-    disconnect: function() {
+    disconnect() {
         pageConnected = false;
-        notify('connection', [remplConnected = false]);
+        notify('connection', [(remplConnected = false)]);
         publishers = [];
         selectedPublisher = null;
+        callbacks.clear();
         updateIndicator();
         dropSandboxTimer = setTimeout(dropSandbox, 3000);
     },
-    endpoints: function(publishers_) {
+    endpoints(publishers_) {
         publishers = publishers_;
 
         if (selectedPublisher && publishers.indexOf(selectedPublisher) === -1) {
             selectedPublisher = null;
+            callbacks.clear();
             dropSandbox();
         }
 
         updateIndicator();
     },
-    data: function() {
+    data(...args) {
         if (DEBUG) {
-            console.log('[rempl][devtools plugin] recieve data', arguments); // eslint-disable-line no-console
+            console.log('[rempl][devtools plugin] recieve data', args); // eslint-disable-line no-console
         }
 
-        notify('data', arguments);
+        notify('data', args);
     }
 };
 
@@ -67,6 +69,7 @@ function updateConnectionStateIndicator(id, state) {
 function updateIndicator() {
     if (!selectedPublisher) {
         selectedPublisher = publishers[0] || null;
+        callbacks.clear();
         if (selectedPublisher) {
             requestUI();
         }
@@ -76,7 +79,8 @@ function updateIndicator() {
     updateConnectionStateIndicator('connection-to-rempl', remplConnected);
     updateConnectionStateIndicator('connection-to-publisher', selectedPublisher !== null);
 
-    $('state-banner').style.display = pageConnected && remplConnected && selectedPublisher ? 'none' : 'block';
+    $('state-banner').style.display =
+        pageConnected && remplConnected && selectedPublisher ? 'none' : 'block';
 
     if (DEBUG) {
         debugIndicator.style.background = [
@@ -121,23 +125,20 @@ function requestUI() {
     dropSandbox();
     showLoading();
     sendToPage('endpoints', [selectedPublisher]);
-    sendToPage('getRemoteUI', function(err, type, content) {
+    sendToPage('getRemoteUI', function (err, type, content) {
         hideLoading();
 
         if (err) {
             return sandboxError('Fetch UI error: ' + err);
         }
 
-        sandbox = createSandbox({
-            type: type,
-            content: content
-        }, function(api) {
+        sandbox = createSandbox({ type, content }, (api) => {
             // TODO: use session
             if (DEBUG) {
                 console.log(devtoolSession); // eslint-disable-line no-console
             }
 
-            api.subscribe(function(...args) {
+            api.subscribe(function (...args) {
                 sendToPage.apply(null, ['data'].concat(args));
             });
             subscribers.data.push(api.send);
@@ -160,7 +161,7 @@ function sendToPage(type, ...args) {
 
     if (args.length && typeof args[args.length - 1] === 'function') {
         callback = genUID();
-        callbacks[callback] = args.pop();
+        callbacks.set(callback, args.pop());
     }
 
     if (DEBUG) {
@@ -175,7 +176,7 @@ function sendToPage(type, ...args) {
     });
 }
 
-page.onMessage.addListener(function(packet) {
+page.onMessage.addListener(function (packet) {
     if (DEBUG) {
         console.log('[rempl][devtools plugin] Recieve:', packet); // eslint-disable-line no-console
     }
@@ -184,16 +185,16 @@ page.onMessage.addListener(function(packet) {
     const callback = packet.callback;
 
     if (packet.type === 'callback') {
-        if (callbacks.hasOwnProperty(callback)) {
-            callbacks[callback].apply(null, args);
-            delete callbacks[callback];
+        if (callbacks.has(callback)) {
+            callbacks.get(callback).apply(null, args);
+            callbacks.delete(callback);
         }
 
         return;
     }
 
     if (callback) {
-        args = args.concat(function(...args) {
+        args = args.concat(function (...args) {
             if (DEBUG) {
                 console.log('[rempl][devtools plugin] send callback', callback, args); // eslint-disable-line no-console
             }

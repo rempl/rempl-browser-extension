@@ -13,7 +13,8 @@ const TARGETS = {
 const outputFile = (target, buildDir) =>
     path.resolve(__dirname, '..', buildDir, `rempl-host-${target}-${version}.zip`);
 
-const makeAddFile = relDir => relPath => zip.file(relPath.replace(`${relDir}/`, ''), fs.readFileSync(relPath));
+const makeAddFile = (relDir) => (relPath) =>
+    zip.file(relPath.replace(`${relDir}/`, ''), fs.readFileSync(relPath));
 
 /**
  * Adds folder to archive
@@ -21,7 +22,7 @@ const makeAddFile = relDir => relPath => zip.file(relPath.replace(`${relDir}/`, 
  * @param {Function} addFile
  */
 function addFolder(relPath, addFile) {
-    fs.readdirSync(relPath).forEach(function(filename) {
+    fs.readdirSync(relPath).forEach(function (filename) {
         const fullpath = path.join(relPath, filename);
         if (fs.statSync(fullpath).isDirectory()) {
             addFolder(fullpath, addFile);
@@ -36,15 +37,13 @@ for (const [target, buildDir] of Object.entries(TARGETS)) {
 
     addFolder(buildDir, addFile);
 
-    zip
-        .generateNodeStream({
-            type: 'nodebuffer',
-            streamFiles: true,
-            compression: 'DEFLATE'
-        })
+    zip.generateNodeStream({
+        type: 'nodebuffer',
+        streamFiles: true,
+        compression: 'DEFLATE'
+    })
         .pipe(fs.createWriteStream(outputFile(target, buildDir)))
-        .on('finish', function() {
+        .on('finish', function () {
             console.log('Write result in ' + outputFile(target, buildDir)); // eslint-disable-line
         });
 }
-

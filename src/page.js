@@ -29,7 +29,7 @@ function updateIndicator() {
 function sendToPlugin(event, data) {
     plugin.postMessage({
         type: event,
-        data: data
+        data
     });
 }
 
@@ -38,11 +38,14 @@ function emitPageEvent(channelId, payload) {
         console.log('[rempl][content script] send to page', channelId, payload); // eslint-disable-line no-console
     }
 
-    postMessage({
-        from: inputChannelId,
-        to: channelId,
-        payload: payload
-    }, '*');
+    postMessage(
+        {
+            from: inputChannelId,
+            to: channelId,
+            payload
+        },
+        '*'
+    );
 }
 
 function sendToPage(data) {
@@ -52,7 +55,7 @@ function sendToPage(data) {
 function handshake(inited) {
     emitPageEvent(connectTo + ':connect', {
         initiator: name,
-        inited: inited,
+        inited,
         endpoints: subscribers
     });
 }
@@ -61,10 +64,12 @@ function handshake(inited) {
 // set up transport
 //
 
-plugin.onMessage.addListener(function(packet) {
+plugin.onMessage.addListener(function (packet) {
     if (DEBUG) {
         console.log('[rempl][content script] from plugin', packet.type, packet); // eslint-disable-line no-console
     }
+
+    console.log('FROM PLUGIN', packet);
 
     switch (packet.type) {
         case 'connect':
@@ -112,7 +117,7 @@ plugin.onMessage.addListener(function(packet) {
 // connect to basis.js devpanel
 //
 
-addEventListener('message', function(e) {
+addEventListener('message', function (e) {
     const data = e.data || {};
     const payload = data.payload || {};
 

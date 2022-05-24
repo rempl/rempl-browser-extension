@@ -5,7 +5,7 @@
   "devtools_page": "index.html",
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "manifest_version": 2,
-  "permissions":  [
+  "permissions": [
     "<all_urls>"
   ],
   "icons": {
@@ -15,10 +15,18 @@
     "128": "img/icon128x128.png"
   },
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": ["page.js"]
-  }]
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "page.js"
+      ]
+    }
+  ]
 }

@@ -1,6 +1,7 @@
 export function createIndicator() {
     const debugIndicator = document.createElement('div');
-    debugIndicator.style = 'position:fixed;top:10px;left:10px;background:red;width:20px;height:20px;border-radius:50%';
+    debugIndicator.style =
+        'position:fixed;top:10px;left:10px;background:red;width:20px;height:20px;border-radius:50%';
     document.documentElement.appendChild(debugIndicator);
     return debugIndicator;
 }
@@ -18,7 +19,7 @@ export function genUID(len) {
     }
 
     while (result.length < len) {
-        result += base36(new Date * Math.random());
+        result += base36(new Date() * Math.random());
     }
 
     return result.substr(0, len);

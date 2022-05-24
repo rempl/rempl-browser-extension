@@ -51,7 +51,7 @@ function connectPage(page) {
         sendToPage(connection, { type: 'connect' });
     }
 
-    page.onMessage.addListener(function(payload) {
+    page.onMessage.addListener(function (payload) {
         if (DEBUG) {
             console.log('page -> plugin', payload); // eslint-disable-line no-console
         }
@@ -60,7 +60,7 @@ function connectPage(page) {
         sendToPlugin(connection, payload);
     });
 
-    page.onDisconnect.addListener(function() {
+    page.onDisconnect.addListener(function () {
         if (DEBUG) {
             console.log('page disconnect', tabId); // eslint-disable-line no-console
         }
@@ -73,7 +73,7 @@ function connectPage(page) {
 function connectPlugin(plugin) {
     let connection;
 
-    plugin.onMessage.addListener(function(payload) {
+    plugin.onMessage.addListener(function (payload) {
         if (DEBUG) {
             console.log('plugin -> page', payload); // eslint-disable-line no-console
         }
@@ -95,7 +95,7 @@ function connectPlugin(plugin) {
         sendToPage(connection, payload);
     });
 
-    plugin.onDisconnect.addListener(function() {
+    plugin.onDisconnect.addListener(function () {
         if (connection) {
             if (DEBUG) {
                 console.log('plugin disconnect'); // eslint-disable-line no-console
@@ -107,7 +107,7 @@ function connectPlugin(plugin) {
     });
 }
 
-chrome.runtime.onConnect.addListener(function(port) {
+chrome.runtime.onConnect.addListener(function (port) {
     if (port.name === 'rempl:page') {
         connectPage(port);
     }
