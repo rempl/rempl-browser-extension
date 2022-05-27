@@ -1,10 +1,16 @@
-import { createSandbox, Sandbox } from 'rempl';
+import {
+    createSandbox,
+    EventTransportChannelId,
+    EventTransportMessagePayload,
+    Sandbox
+} from 'rempl';
 import { createIndicator, genUID } from './helpers';
 import {
-    MessageArgsMap,
+    BgToPluginMessage,
     MessageListenerMap,
     PageToPluginMessage,
-    PluginToPageMessage
+    PluginToPageMessage,
+    PublisherInfo
 } from './types';
 
 const DEBUG = false;
@@ -13,8 +19,8 @@ const debugIndicator = DEBUG ? createIndicator() : null;
 let pageConnected = false;
 let remplConnected = false;
 let devtoolSession: string | null = null;
-let selectedPublisher: string | null = null;
-let publishers: string[] = [];
+let publishers: PublisherInfo[] = [];
+let selectedPublisher: PublisherInfo | null = null;
 const callbacks = new Map();
 const subscribers = createSubscribers();
 let dropSandboxTimer: ReturnType<typeof setTimeout>;
@@ -32,12 +38,11 @@ type SubscribeMap = {
     [K in keyof SubscribeArgsMap]: Array<(...args: SubscribeArgsMap[K]) => void>;
 };
 
-type PageToPluginMessageArgs = MessageArgsMap<PageToPluginMessage>;
-
-const listeners: MessageListenerMap<PageToPluginMessage> = {
+const listeners: MessageListenerMap<BgToPluginMessage> = {
     connect() {
         pageConnected = true;
         updateIndicator();
+        clearTimeout(dropSandboxTimer);
     },
     disconnect() {
         pageConnected = false;
@@ -48,29 +53,68 @@ const listeners: MessageListenerMap<PageToPluginMessage> = {
         updateIndicator();
         dropSandboxTimer = setTimeout(dropSandbox, 3000);
     },
-    'page:connect'(sessionId, publishers_) {
+    'page:connect'(sessionId, newPublishers) {
         notify('session', (devtoolSession = sessionId));
         notify('connection', (remplConnected = true));
-        publishers = publishers_;
+        updatePublishers(newPublishers);
         updateIndicator();
     },
-    endpoints(publishers_) {
-        publishers = publishers_;
-
-        if (selectedPublisher && publishers.indexOf(selectedPublisher) === -1) {
-            selectedPublisher = null;
-            callbacks.clear();
-            dropSandbox();
-        }
-
+    'page:publishers'(newPublishers) {
+        updatePublishers(newPublishers);
         updateIndicator();
     },
-    data(...args) {
-        if (DEBUG) {
-            console.log('[rempl][devtools plugin] recieve data', args); // eslint-disable-line no-console
+    rempl(channelId, payload) {
+        const endpoint = 'endpoint' in payload ? payload.endpoint : null;
+
+        // Filter messages for selected publisher only. This is necessary to make sure
+        // that a message riched the correct publisher get, since a message might be sent
+        // before a selected provider changed.
+        if (
+            selectedPublisher === null ||
+            selectedPublisher.channelId !== channelId ||
+            (endpoint !== null && selectedPublisher.name !== endpoint)
+        ) {
+            return;
         }
 
-        notify('data', ...args);
+        switch (payload.type) {
+            case 'callback': {
+                const { callback, data: args } = payload;
+
+                if (callbacks.has(callback)) {
+                    callbacks.get(callback)(...args);
+                    callbacks.delete(callback);
+                }
+
+                break;
+            }
+
+            case 'data': {
+                const { callback, data: args } = payload;
+                const channelId = selectedPublisher.channelId;
+
+                if (callback) {
+                    args.push((...data: unknown[]) => {
+                        if (DEBUG) {
+                            console.log('[rempl][devtools plugin] send callback', callback, data); // eslint-disable-line no-console
+                        }
+
+                        sendRemplMessageToPage(channelId, {
+                            type: 'callback',
+                            data,
+                            callback
+                        });
+                    });
+                }
+
+                if (DEBUG) {
+                    console.log('[rempl][devtools plugin] recieve data', payload); // eslint-disable-line no-console
+                }
+
+                notify('data', ...args);
+                break;
+            }
+        }
     }
 };
 
@@ -79,25 +123,19 @@ function $(id: string) {
 }
 
 function updateConnectionStateIndicator(id: string, state: boolean) {
-    $(id).innerHTML = state ? 'OK' : 'pending...';
+    $(id).innerHTML = state ? 'OK' : 'Awaiting...';
     $(id).className = 'state ' + (state ? 'ok' : 'pending');
 }
 
 function updateIndicator() {
-    if (!selectedPublisher) {
-        selectedPublisher = publishers[0] || null;
-        callbacks.clear();
-        if (selectedPublisher) {
-            requestUI();
-        }
-    }
+    const ready = !pageConnected || !remplConnected || !selectedPublisher;
 
     updateConnectionStateIndicator('connection-to-page', pageConnected);
     updateConnectionStateIndicator('connection-to-rempl', remplConnected);
     updateConnectionStateIndicator('connection-to-publisher', selectedPublisher !== null);
 
-    $('state-banner').style.display =
-        pageConnected && remplConnected && selectedPublisher ? 'none' : 'block';
+    $('state-banner').hidden = !ready;
+    $('main').hidden = ready;
 
     if (DEBUG && debugIndicator) {
         debugIndicator.style.background = [
@@ -108,18 +146,43 @@ function updateIndicator() {
     }
 }
 
+function renderPublisherTabs(publishers: PublisherInfo[]) {
+    const tabsEl = $('publisher-tabs');
+
+    tabsEl.innerHTML = '';
+
+    for (const publisher of publishers) {
+        const tabEl = document.createElement('div');
+
+        tabEl.className = 'tab';
+        tabEl.dataset.publisherId = publisher.id;
+        tabEl.textContent = publisher.name;
+        tabEl.addEventListener('click', () => setSelectedPublisher(publisher));
+
+        tabsEl.append(tabEl);
+    }
+}
+
+function updateSelectedPublisherTab() {
+    const tabsEl = $('publisher-tabs');
+
+    for (const tabEl of [...tabsEl.children] as HTMLElement[]) {
+        tabEl.classList.toggle('tab_selected', tabEl.dataset.publisherId === selectedPublisher?.id);
+    }
+}
+
 function sandboxError(message: string) {
-    $('error').style.display = 'block';
+    $('error').hidden = false;
     $('error').textContent = message;
 }
 
-function showLoading() {
-    $('error').style.display = 'none';
-    $('loading').style.display = 'block';
+function showLoadingUI() {
+    $('error').hidden = true;
+    $('loading-ui').hidden = false;
 }
 
-function hideLoading() {
-    $('loading').style.display = 'none';
+function hideLoadingUI() {
+    $('loading-ui').hidden = true;
 }
 
 function notify<K extends keyof SubscribeArgsMap>(type: K, ...args: SubscribeArgsMap[K]) {
@@ -142,24 +205,27 @@ function regCallback(callback: (...args: any[]) => void) {
     return callbackId;
 }
 
-function requestUI() {
+function requestUI(publisher: PublisherInfo) {
     // send interface UI request
     // TODO: reduce reloads
     dropSandbox();
-    showLoading();
-    sendToPage({ type: 'endpoints', data: [selectedPublisher ? [selectedPublisher] : []] });
+    showLoadingUI();
     sendToPage({
+        type: 'plugin:subscribers',
+        data: [[publisher]]
+    });
+    sendRemplMessageToPage(publisher.channelId, {
         type: 'getRemoteUI',
-        endpoint: selectedPublisher,
+        endpoint: publisher.name,
         data: [{}],
         callback: regCallback((err: string | null, type: string, content: string) => {
-            hideLoading();
+            hideLoadingUI();
 
             if (err) {
                 return sandboxError('Fetch UI error: ' + err);
             }
 
-            sandbox = createSandbox({ type, content } as any, (api) => {
+            sandbox = createSandbox({ type, content, container: $('sandbox') } as any, (api) => {
                 // TODO: use session
                 if (DEBUG) {
                     console.log(devtoolSession); // eslint-disable-line no-console
@@ -171,9 +237,9 @@ function requestUI() {
                             ? regCallback(args.pop() as (...args: unknown[]) => void)
                             : null;
 
-                    sendToPage({
+                    sendRemplMessageToPage(publisher.channelId, {
                         type: 'data',
-                        endpoint: selectedPublisher,
+                        endpoint: publisher.name,
                         data: args,
                         callback
                     });
@@ -183,6 +249,44 @@ function requestUI() {
             sandbox.setConnected(true);
         })
     });
+}
+
+function setSelectedPublisher(publisher: PublisherInfo | null) {
+    if (publisher?.id === selectedPublisher?.id) {
+        return;
+    }
+
+    if (selectedPublisher !== null) {
+        selectedPublisher = null;
+        callbacks.clear();
+        dropSandbox();
+    }
+
+    if (publisher !== null) {
+        selectedPublisher = publisher;
+        requestUI(selectedPublisher);
+    }
+
+    updateSelectedPublisherTab();
+    updateIndicator();
+}
+
+function updatePublishers(newPublishers: PublisherInfo[]) {
+    const prevSelectedPublisherId = selectedPublisher?.id || null;
+    let newSelectedPublisher = selectedPublisher;
+
+    publishers = newPublishers;
+
+    if (publishers.every(({ id }) => id !== prevSelectedPublisherId)) {
+        newSelectedPublisher = null;
+    }
+
+    if (newSelectedPublisher === null && publishers.length > 0) {
+        newSelectedPublisher = publishers[0];
+    }
+
+    renderPublisherTabs(publishers);
+    setSelectedPublisher(newSelectedPublisher);
 }
 
 function dropSandbox() {
@@ -202,45 +306,23 @@ function sendToPage(message: PluginToPageMessage) {
     page.postMessage(message);
 }
 
+function sendRemplMessageToPage(
+    channelId: EventTransportChannelId,
+    payload: EventTransportMessagePayload
+) {
+    sendToPage({
+        type: 'rempl',
+        data: [channelId, payload]
+    });
+}
+
 page.onMessage.addListener((packet: PageToPluginMessage) => {
     if (DEBUG) {
         console.log('[rempl][devtools plugin] Recieve:', packet); // eslint-disable-line no-console
     }
 
-    const type: keyof PageToPluginMessageArgs = packet.type;
-    const args: PageToPluginMessageArgs[typeof type] =
-        'data' in packet && Array.isArray(packet.data) ? packet.data : [];
-    const callback = 'callback' in packet ? packet.callback : null;
-
-    if (packet.type === 'callback') {
-        if (callbacks.has(callback)) {
-            callbacks.get(callback)(...args);
-            callbacks.delete(callback);
-        }
-
-        return;
-    }
-
-    if (callback) {
-        args.push((...data: unknown[]) => {
-            if (DEBUG) {
-                console.log('[rempl][devtools plugin] send callback', callback, data); // eslint-disable-line no-console
-            }
-
-            sendToPage({
-                type: 'callback',
-                data,
-                callback
-            });
-        });
-    }
-
-    // filter packets for selected publisher only
-    // TODO: remove it, when rempl would filter send requests on it own side
-    const endpoint = 'endpoint' in packet ? packet.endpoint : null;
-    if (endpoint !== selectedPublisher) {
-        return;
-    }
+    const type = packet.type;
+    const args = packet.data || [];
 
     if (listeners.hasOwnProperty(type)) {
         listeners[type]?.(...(args as any));

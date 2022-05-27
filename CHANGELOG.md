@@ -1,5 +1,6 @@
 ## next
 
+- Added support for multiple publishers
 - Fixed to work in incognito mode
 - Bumped `rempl` to `1.0.0-alpha.21`
 
