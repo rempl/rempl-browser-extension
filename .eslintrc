@@ -30,6 +30,7 @@
         ],
         "no-duplicate-case": 2,
         "no-undef": 2,
+        "no-console": 2,
         "no-unused-vars": [
             2,
             {

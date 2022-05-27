@@ -37,10 +37,10 @@ async function build(browser) {
     // build bundle
     const result = await esbuild.build({
         entryPoints: [
-            path.join(indir, 'index.js'),
-            path.join(indir, 'background.js'),
-            path.join(indir, 'page.js'),
-            path.join(indir, 'plugin.js')
+            path.join(indir, 'index.ts'),
+            path.join(indir, 'background.ts'),
+            path.join(indir, 'page.ts'),
+            path.join(indir, 'plugin.ts')
         ],
         plugins: [
             {

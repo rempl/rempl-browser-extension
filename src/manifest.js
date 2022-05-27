@@ -3,7 +3,7 @@ const path = require('path');
 const packageJson = require('../package.json');
 
 module.exports = function (browser = 'chrome') {
-    const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, 'manifest.json')).toString());
+    const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, 'manifest.json'), 'utf8'));
 
     manifest.version = packageJson.version;
 

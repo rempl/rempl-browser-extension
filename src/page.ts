@@ -1,16 +1,24 @@
+import {
+    EventTransportChannelId,
+    EventTransportConnectTo,
+    EventTransportHandshakePayload,
+    EventTransportMessage,
+    EventTransportMessagePayload
+} from 'rempl';
 import { createIndicator, genUID } from './helpers';
+import { BgToPageMessage, PageToPluginMessage } from './types';
 
 const DEBUG = false;
 const sessionId = genUID();
 let pluginConnected = false;
 let remplConnected = false;
-let publishers = [];
-let subscribers = [];
+let publishers: string[] = [];
+let subscribers: string[] = [];
 const debugIndicator = DEBUG ? createIndicator() : null;
-let outputChannelId;
 const name = 'rempl-browser-extension-host';
-const connectTo = 'rempl-browser-extension-publisher';
-const inputChannelId = name + ':' + genUID();
+const connectToName = 'rempl-browser-extension-publisher';
+const inputChannelId: EventTransportChannelId = `${name}/${genUID()}`;
+let outputChannelId: EventTransportChannelId | null = null;
 
 const plugin = chrome.runtime.connect({
     name: 'rempl:page'
@@ -22,38 +30,39 @@ function updateIndicator() {
             'blue', // once disconnected
             'orange', // pluginConnected but no a page
             'green' // all connected
-        ][pluginConnected + remplConnected];
+        ][Number(pluginConnected) + Number(remplConnected)];
     }
 }
 
-function sendToPlugin(event, data) {
-    plugin.postMessage({
-        type: event,
-        data
-    });
+function sendToPlugin(message: PageToPluginMessage) {
+    plugin.postMessage(message);
 }
 
-function emitPageEvent(channelId, payload) {
+function emitPageEvent(to: EventTransportConnectTo, payload: EventTransportHandshakePayload): void;
+function emitPageEvent(to: EventTransportChannelId, payload: EventTransportMessagePayload): void;
+function emitPageEvent(to: EventTransportConnectTo | EventTransportChannelId, payload: any): void {
     if (DEBUG) {
-        console.log('[rempl][content script] send to page', channelId, payload); // eslint-disable-line no-console
+        console.log('[rempl][content script] send to page', to, payload); // eslint-disable-line no-console
     }
 
-    postMessage(
-        {
-            from: inputChannelId,
-            to: channelId,
-            payload
-        },
-        '*'
-    );
+    const message: EventTransportMessage = {
+        from: inputChannelId,
+        to,
+        payload
+    };
+
+    postMessage(message, '*');
 }
 
-function sendToPage(data) {
-    emitPageEvent(outputChannelId, data);
+function sendToPage(data: EventTransportMessagePayload) {
+    if (outputChannelId) {
+        emitPageEvent(outputChannelId, data);
+    }
 }
 
-function handshake(inited) {
-    emitPageEvent(connectTo + ':connect', {
+function handshake(inited: boolean) {
+    emitPageEvent(`${connectToName}:connect`, {
+        type: 'handshake',
         initiator: name,
         inited,
         endpoints: subscribers
@@ -64,17 +73,18 @@ function handshake(inited) {
 // set up transport
 //
 
-plugin.onMessage.addListener(function (packet) {
+plugin.onMessage.addListener((packet: BgToPageMessage) => {
     if (DEBUG) {
         console.log('[rempl][content script] from plugin', packet.type, packet); // eslint-disable-line no-console
     }
 
-    console.log('FROM PLUGIN', packet);
-
     switch (packet.type) {
         case 'connect':
             if (!pluginConnected && remplConnected) {
-                sendToPlugin('page:connect', [sessionId, publishers]);
+                sendToPlugin({
+                    type: 'page:connect',
+                    data: [sessionId, publishers]
+                });
                 sendToPage({
                     type: 'connect',
                     endpoints: subscribers
@@ -109,32 +119,33 @@ plugin.onMessage.addListener(function (packet) {
             break;
 
         default:
+            // @ts-expect-error type
             console.warn('[rempl][content script] Unknown packet type: ' + packet.type); // eslint-disable-line no-console
     }
 });
 
 //
-// connect to basis.js devpanel
+// listen message events
 //
 
-addEventListener('message', function (e) {
+addEventListener('message', (e: MessageEvent<EventTransportMessage>) => {
     const data = e.data || {};
-    const payload = data.payload || {};
+    const connectTo: EventTransportConnectTo = `${name}:connect`;
 
     switch (data.to) {
-        case name + ':connect':
-            if (payload.initiator === connectTo) {
-                onConnect(data.from, payload);
+        case connectTo:
+            if (data.payload.initiator === connectToName) {
+                onConnect(data.from, data.payload);
             }
             break;
 
         case inputChannelId:
-            onData(payload);
+            onData(data.payload);
             break;
     }
 });
 
-function onConnect(from, payload) {
+function onConnect(from: EventTransportChannelId, payload: EventTransportHandshakePayload) {
     outputChannelId = from;
 
     if (!payload.inited) {
@@ -146,7 +157,10 @@ function onConnect(from, payload) {
     updateIndicator();
 
     if (pluginConnected) {
-        sendToPlugin('page:connect', [sessionId, payload.endpoints || publishers]);
+        sendToPlugin({
+            type: 'page:connect',
+            data: [sessionId, payload.endpoints || publishers]
+        });
         sendToPage({
             type: 'connect',
             endpoints: subscribers
@@ -154,7 +168,7 @@ function onConnect(from, payload) {
     }
 }
 
-function onData(payload) {
+function onData(payload: EventTransportMessagePayload) {
     if (DEBUG) {
         console.log('[rempl][content script] page -> plugin', payload); // eslint-disable-line no-console
     }
@@ -170,7 +184,7 @@ function onData(payload) {
             break;
     }
 
-    plugin.postMessage(payload);
+    sendToPlugin(payload);
 }
 
 handshake(false);
