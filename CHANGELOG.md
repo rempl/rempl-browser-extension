@@ -3,6 +3,7 @@
 - Added support for multiple publishers
 - Fixed to work in incognito mode
 - Bumped `rempl` to `1.0.0-alpha.21`
+- Removed unnecessary CSP prop from manifest that allowed unsafe-eval
 
 ## 1.0.1 (November 12, 2021)
 
