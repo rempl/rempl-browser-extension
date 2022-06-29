@@ -1,9 +1,9 @@
-## next
+## 1.0.2 (June 29, 2022)
 
-- Added support for multiple publishers
+- Added support for multiple tools (rempl publishers)
 - Fixed to work in incognito mode
-- Bumped `rempl` to `1.0.0-alpha.21`
 - Removed unnecessary CSP prop from manifest that allowed unsafe-eval
+- Bumped `rempl` to `1.0.0-alpha.22`
 
 ## 1.0.1 (November 12, 2021)
 
