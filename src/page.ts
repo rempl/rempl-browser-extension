@@ -5,8 +5,8 @@ import {
     EventTransportMessage,
     EventTransportMessagePayload
 } from 'rempl';
-import { BgToPageMessage, PageToPluginMessage, PublisherInfo } from './types';
-import { createIndicator, genUID } from './helpers';
+import { BgToPageMessage, PageToPluginMessage, PublisherInfo } from './types.js';
+import { createIndicator, genUID } from './helpers.js';
 
 type PublisherHub = {
     id: number;

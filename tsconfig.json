@@ -1,19 +1,14 @@
 {
+    "include": ["src/*.ts"],
     "compilerOptions": {
         "target": "ES2020",
-        "module": "ES2020",
-        "moduleResolution": "node",
+        "module": "node16",
+        "moduleResolution": "nodenext",
         "lib": ["ESNext", "DOM", "DOM.Iterable"],
-        "jsx": "react",
-        "sourceMap": true,
-        "esModuleInterop": true,
         "allowJs": false,
         "strict": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
-        "resolveJsonModule": true,
-        "declaration": true,
-        "outDir": "dist"
-    },
-    "exclude": ["node_modules", "dist"]
+        "noEmit": true
+    }
 }

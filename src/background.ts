@@ -3,7 +3,7 @@ import {
     BgToPluginMessage,
     PageToPluginMessage,
     PluginToPageMessage
-} from './types';
+} from './types.js';
 
 const PLUGIN_NAME_PREFIX = 'rempl:sandbox:';
 const CONNECT_MESSAGE = { type: 'connect' } as const;

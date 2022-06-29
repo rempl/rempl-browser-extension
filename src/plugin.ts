@@ -4,14 +4,14 @@ import {
     EventTransportMessagePayload,
     Sandbox
 } from 'rempl';
-import { createIndicator, genUID } from './helpers';
+import { createIndicator, genUID } from './helpers.js';
 import {
     BgToPluginMessage,
     MessageListenerMap,
     PageToPluginMessage,
     PluginToPageMessage,
     PublisherInfo
-} from './types';
+} from './types.js';
 
 const DEBUG = false;
 const inspectedWindow = chrome.devtools.inspectedWindow;

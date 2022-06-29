@@ -1,12 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const esbuild = require('esbuild');
-const manifest = require('../src/manifest.js');
+const manifest = require('./manifest.cjs');
 
 const { NODE_ENV } = process.env;
 const watch = NODE_ENV !== 'production';
 
-const indir = path.join(__dirname, '/../src');
+const indir = path.join(__dirname, '../src');
 const browsers = ['chrome', 'firefox'];
 
 function copyFiles(src, dest) {

@@ -5,30 +5,28 @@
   "author": "Roman Dvornov",
   "license": "MIT",
   "repository": "rempl/host-browser-extension",
-  "homepage": "https://github.com/rempl/host-browser-extension",
-  "bugs": {
-    "url": "https://github.com/rempl/host-browser-extension/issues"
-  },
+  "type": "module",
   "keywords": [
     "rempl",
     "host"
   ],
   "dependencies": {
-    "rempl": "1.0.0-alpha.21"
+    "rempl": "1.0.0-alpha.22"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.188",
+    "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.10.1",
     "@typescript-eslint/parser": "^5.10.1",
     "esbuild": "^0.14.38",
     "eslint": "^8.14.0",
     "jszip": "^3.9.1",
-    "typescript": "^4.6.4"
+    "typescript": "^4.7.4"
   },
   "scripts": {
-    "lint": "eslint src scripts",
-    "tscheck": "tsc src/*.ts --noEmit",
-    "dev": "node ./scripts/build.js",
-    "build": "NODE_ENV=production node ./scripts/build.js && node ./scripts/zip.js"
+    "lint": "eslint src/*.{cjs,ts} scripts/*.cjs",
+    "tscheck": "tsc --noEmit",
+    "dev": "node ./scripts/build.cjs",
+    "build": "NODE_ENV=production node ./scripts/build.cjs && node ./scripts/zip.cjs"
   }
 }
