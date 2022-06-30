@@ -1,6 +1,6 @@
 {
   "name": "host-browser-extension",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Rempl host for broswer Developer Tools",
   "author": "Roman Dvornov",
   "license": "MIT",

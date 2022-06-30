@@ -1,3 +1,7 @@
+## 1.0.3 (June 30, 2022)
+
+- Technical update to re-upload addon to the FireFox store
+
 ## 1.0.2 (June 29, 2022)
 
 - Added support for multiple tools (rempl publishers)
