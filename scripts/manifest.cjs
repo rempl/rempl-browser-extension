@@ -18,6 +18,13 @@ module.exports = function (browser = 'chrome') {
         };
 
         delete manifest.offline_enabled;
+
+        // Minifest v3 is not supported in Firefox yet
+        // TODO: remove following lines when migrate to v3
+        manifest.manifest_version = 2;
+        manifest.background = {
+            scripts: [manifest.background.service_worker]
+        };
     }
 
     return JSON.stringify(manifest, null, 4);

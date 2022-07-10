@@ -2,16 +2,13 @@
   "name": "Rempl",
   "version": null,
   "description": "Rempl host for browser's Developer Tools",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "icons": {
     "16": "img/icon16x16.png",
     "32": "img/icon32x32.png",
     "48": "img/icon48x48.png",
     "128": "img/icon128x128.png"
   },
-  "permissions": [
-    "<all_urls>"
-  ],
   "devtools_page": "index.html",
   "sandbox": {
     "pages": [
@@ -19,9 +16,7 @@
     ]
   },
   "background": {
-    "scripts": [
-      "background.js"
-    ]
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {

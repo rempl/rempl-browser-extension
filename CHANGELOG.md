@@ -1,6 +1,7 @@
 ## next
 
 - Fixed a failure on sandbox init due to CSP issues
+- Migrated to manifest v3 (Chromium only)
 
 ## 1.0.3 (June 30, 2022)
 
