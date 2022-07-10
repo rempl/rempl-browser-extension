@@ -1,6 +1,6 @@
 {
   "name": "rempl-browser-extension",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Rempl host for browser's Developer Tools",
   "author": "Roman Dvornov <rdvornov@gmail.com>",
   "license": "MIT",

@@ -1,7 +1,8 @@
-## next
+## 1.0.4 (July 10, 2022)
 
 - Fixed a failure on sandbox init due to CSP issues
 - Migrated to manifest v3 (Chromium only)
+- Bumped `rempl` to `1.0.0-alpha.23`
 
 ## 1.0.3 (June 30, 2022)
 
