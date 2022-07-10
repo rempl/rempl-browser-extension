@@ -1,10 +1,10 @@
 {
-  "name": "host-browser-extension",
+  "name": "rempl-browser-extension",
   "version": "1.0.3",
-  "description": "Rempl host for broswer Developer Tools",
-  "author": "Roman Dvornov",
+  "description": "Rempl host for browser's Developer Tools",
+  "author": "Roman Dvornov <rdvornov@gmail.com>",
   "license": "MIT",
-  "repository": "rempl/host-browser-extension",
+  "repository": "rempl/rempl-browser-extension",
   "type": "module",
   "keywords": [
     "rempl",
