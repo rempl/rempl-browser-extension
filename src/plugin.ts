@@ -206,8 +206,6 @@ function regCallback(callback: (...args: any[]) => void) {
 }
 
 function requestUI(publisher: PublisherInfo) {
-    // send interface UI request
-    // TODO: reduce reloads
     dropSandbox();
     showLoadingUI();
     sendToPage({
@@ -218,36 +216,50 @@ function requestUI(publisher: PublisherInfo) {
         type: 'getRemoteUI',
         endpoint: publisher.name,
         data: [{}],
-        callback: regCallback((err: string | null, type: string, content: string) => {
-            hideLoadingUI();
+        callback: regCallback(
+            (
+                err: string | null,
+                type?: 'url' | 'script',
+                content?: string | Record<string, string>
+            ) => {
+                hideLoadingUI();
 
-            if (err) {
-                return sandboxError('Fetch UI error: ' + err);
-            }
-
-            sandbox = createSandbox({ type, content, container: $('sandbox') } as any, (api) => {
-                // TODO: use session
-                if (DEBUG) {
-                    console.log(devtoolSession); // eslint-disable-line no-console
+                if (err) {
+                    return sandboxError('Fetch UI error: ' + err);
                 }
 
-                api.subscribe((...args: unknown[]) => {
-                    const callback =
-                        args.length > 0 && typeof args[args.length - 1] === 'function'
-                            ? regCallback(args.pop() as (...args: unknown[]) => void)
-                            : null;
+                sandbox = createSandbox(
+                    {
+                        type,
+                        content,
+                        container: $('sandbox'),
+                        sandboxSrc: type === 'script' ? 'sandbox.html' : undefined
+                    } as any,
+                    (api) => {
+                        // TODO: use session
+                        if (DEBUG) {
+                            console.log(devtoolSession); // eslint-disable-line no-console
+                        }
 
-                    sendRemplMessageToPage(publisher.channelId, {
-                        type: 'data',
-                        endpoint: publisher.name,
-                        data: args,
-                        callback
-                    });
-                });
-                subscribers.data.push(api.send);
-            });
-            sandbox.setConnected(true);
-        })
+                        subscribers.data.push(api.send);
+                        api.subscribe((...args: unknown[]) => {
+                            const callback =
+                                args.length > 0 && typeof args[args.length - 1] === 'function'
+                                    ? regCallback(args.pop() as (...args: unknown[]) => void)
+                                    : null;
+
+                            sendRemplMessageToPage(publisher.channelId, {
+                                type: 'data',
+                                endpoint: publisher.name,
+                                data: args,
+                                callback
+                            });
+                        });
+                    }
+                );
+                sandbox.setConnected(true);
+            }
+        )
     });
 }
 

@@ -33,6 +33,7 @@ async function build(browser) {
     copyFiles(path.join(indir, 'img'), outdir);
     copyFiles(path.join(indir, 'index.html'), outdir);
     copyFiles(path.join(indir, 'plugin.html'), outdir);
+    copyFiles(path.join(indir, 'sandbox.html'), outdir);
 
     // build bundle
     const result = await esbuild.build({
@@ -40,7 +41,8 @@ async function build(browser) {
             path.join(indir, 'index.ts'),
             path.join(indir, 'background.ts'),
             path.join(indir, 'page.ts'),
-            path.join(indir, 'plugin.ts')
+            path.join(indir, 'plugin.ts'),
+            path.join(indir, 'sandbox.ts')
         ],
         plugins: [
             {

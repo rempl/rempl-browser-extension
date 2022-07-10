@@ -1,3 +1,7 @@
+## next
+
+- Fixed a failure on sandbox init due to CSP issues
+
 ## 1.0.3 (June 30, 2022)
 
 - Technical update to re-upload addon to the FireFox store
