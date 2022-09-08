@@ -9,6 +9,7 @@ Download it from:
 
 - [Chrome Web Store](https://chrome.google.com/webstore/detail/rempl/hcikjlholajopgbgfmmlbmifdfbkijdj)
 - [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/rempl/)
+- [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/rempl/fdjblokocclgcookheppjmfmgfkppmaa)
 - [Releases](https://github.com/rempl/rempl-browser-extension/releases) page
 
 > NOTE: Once Rempl extension is installed, its tab ("Rempl") should appear in browser's devtools. Make sure you reload a page using Rempl tools and re-opened (close and open again) browser's devtools as well.
